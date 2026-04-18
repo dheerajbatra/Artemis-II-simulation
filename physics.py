@@ -8,19 +8,19 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 # ── Gravitational parameters ──────────────────────────────────────────────────
-MU_EARTH = 398600.4418      # km^3/s^2
-MU_MOON  = 4902.8000        # km^3/s^2
-MU_SUN   = 1.32712440018e11 # km^3/s^2
+MU_EARTH = 398600.4418  # km^3/s^2
+MU_MOON = 4902.8000  # km^3/s^2
+MU_SUN = 1.32712440018e11  # km^3/s^2
 
-R_EARTH  = 6378.137         # km
-R_MOON   = 1737.4           # km
+R_EARTH = 6378.137  # km
+R_MOON = 1737.4  # km
 
 # Moon orbital parameters
-MOON_SEMI_MAJOR = 384400.0      # km (mean)
-MOON_PERIOD     = 27.3217 * 86400.0  # s (sidereal)
-MOON_INC        = np.radians(5.145)  # inclination to ecliptic
+MOON_SEMI_MAJOR = 384400.0  # km (mean)
+MOON_PERIOD = 27.3217 * 86400.0  # s (sidereal)
+MOON_INC = np.radians(5.145)  # inclination to ecliptic
 
-AU               = 1.496e8       # km
+AU = 1.496e8  # km
 EARTH_SUN_PERIOD = 365.25 * 86400.0
 
 # Moon initial phase (radians at t=0).
@@ -52,6 +52,7 @@ def sun_position(t):
 
 def make_eom(moon_phase0, include_sun=True):
     """Return an equations_of_motion function with the given Moon phase."""
+
     def equations_of_motion(t, state):
         pos = state[0:3]
         vel = state[3:6]
@@ -63,36 +64,44 @@ def make_eom(moon_phase0, include_sun=True):
         # Moon gravity (using Battin's indirect term for frame consistency)
         r_moon = moon_position(t, phase0=moon_phase0)
         d_moon = pos - r_moon
-        r_dm   = np.linalg.norm(d_moon)
-        r_mn   = np.linalg.norm(r_moon)
+        r_dm = np.linalg.norm(d_moon)
+        r_mn = np.linalg.norm(r_moon)
         a += -MU_MOON * (d_moon / r_dm**3 + r_moon / r_mn**3)
 
         # Sun gravity
         if include_sun:
             r_sun = sun_position(t)
             d_sun = pos - r_sun
-            r_ds  = np.linalg.norm(d_sun)
-            r_sn  = np.linalg.norm(r_sun)
+            r_ds = np.linalg.norm(d_sun)
+            r_sn = np.linalg.norm(r_sun)
             a += -MU_SUN * (d_sun / r_ds**3 + r_sun / r_sn**3)
 
         return np.concatenate([vel, a])
+
     return equations_of_motion
 
 
-def propagate(state0, t_span, moon_phase0=0.0, n_points=50000,
-              include_sun=True, rtol=1e-10, atol=1e-10):
+def propagate(
+    state0,
+    t_span,
+    moon_phase0=0.0,
+    n_points=50000,
+    include_sun=True,
+    rtol=1e-10,
+    atol=1e-10,
+):
     """
     Integrate the equations of motion.
     Returns (t_array, states_6xN).
     Note: for visualization, truncate data at reentry_index to avoid post-impact artifacts.
     """
     t_eval = np.linspace(t_span[0], t_span[1], n_points)
-    eom    = make_eom(moon_phase0, include_sun)
+    eom = make_eom(moon_phase0, include_sun)
     sol = solve_ivp(
         eom,
         t_span,
         state0,
-        method='DOP853',
+        method="DOP853",
         t_eval=t_eval,
         rtol=rtol,
         atol=atol,
@@ -106,18 +115,18 @@ def propagate(state0, t_span, moon_phase0=0.0, n_points=50000,
 def closest_approach(t_arr, states, moon_phase0=0.0):
     """Return (index, time, distance) of closest approach to Moon."""
     moon_pos = np.array([moon_position(t, phase0=moon_phase0) for t in t_arr])
-    sc_pos   = states[0:3, :].T
-    diffs    = sc_pos - moon_pos
-    dists    = np.linalg.norm(diffs, axis=1)
-    idx      = np.argmin(dists)
+    sc_pos = states[0:3, :].T
+    diffs = sc_pos - moon_pos
+    dists = np.linalg.norm(diffs, axis=1)
+    idx = np.argmin(dists)
     return idx, t_arr[idx], dists[idx]
 
 
 def reentry_index(t_arr, states, altitude_km=120.0, min_days=2.0):
     """Return index where spacecraft first goes below altitude_km after min_days."""
-    r_sc      = np.linalg.norm(states[0:3, :], axis=0)
+    r_sc = np.linalg.norm(states[0:3, :], axis=0)
     threshold = R_EARTH + altitude_km
-    min_t     = min_days * 86400.0
+    min_t = min_days * 86400.0
     for i, ti in enumerate(t_arr):
         if ti >= min_t and r_sc[i] < threshold:
             return i

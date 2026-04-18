@@ -15,7 +15,10 @@ Based on real Artemis II parameters:
   - No burn needed for return — pure gravity
 """
 
-import os, sys, time
+import os
+import sys
+import time
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
@@ -28,31 +31,35 @@ BANNER = """
 ╚══════════════════════════════════════════════════════════════╝
 """
 
+
 def print_mission_log(t, states, meta):
     """Print a formatted mission event log."""
-    from physics import moon_position, R_EARTH, R_MOON
+    from physics import R_EARTH, R_MOON, moon_position
 
     events = [
-        (0,                          "TLI Burn Complete"),
-        (3 * 3600,                   "Trans-Lunar Coast begin"),
-        (meta['perilune_time_s'],    "PERILUNE (closest Moon approach)"),
+        (0, "TLI Burn Complete"),
+        (3 * 3600, "Trans-Lunar Coast begin"),
+        (meta["perilune_time_s"], "PERILUNE (closest Moon approach)"),
     ]
-    if meta['reentry_time_s']:
-        events.append((meta['reentry_time_s'], "Re-entry Interface (~120 km)"))
+    if meta["reentry_time_s"]:
+        events.append((meta["reentry_time_s"], "Re-entry Interface (~120 km)"))
 
     print("\n" + "─" * 65)
     print(f"{'Event':<35} {'T+ (hr)':>10}  {'T+ (days)':>10}")
     print("─" * 65)
     for ts, label in sorted(events):
-        print(f"  {label:<33} {ts/3600:>10.2f}  {ts/86400:>10.3f}")
+        print(f"  {label:<33} {ts / 3600:>10.2f}  {ts / 86400:>10.3f}")
     print("─" * 65)
 
     print(f"\n  Parking orbit altitude   : {170:.0f} km")
+    # print(f"\n  Parking orbit altitude   : {'PARKING_ORBIT_ALT':.0f} km")
     print(f"  TLI delta-v              : ~3,122 m/s")
     print(f"  Post-TLI speed           : {meta['tli_speed_km_s']:.3f} km/s")
-    print(f"  Perilune altitude        : {meta['perilune_alt_km']:.0f} km above Moon surface")
+    print(
+        f"  Perilune altitude        : {meta['perilune_alt_km']:.0f} km above Moon surface"
+    )
     print(f"  Perilune dist (center)   : {meta['perilune_dist_km']:.0f} km")
-    if meta['reentry_speed_km_s']:
+    if meta["reentry_speed_km_s"]:
         print(f"  Re-entry speed           : {meta['reentry_speed_km_s']:.3f} km/s")
     print()
 
@@ -62,8 +69,12 @@ def main():
     t0 = time.time()
 
     from mission import build_full_trajectory
-    from visualize import (plot_3d_trajectory, plot_telemetry,
-                           plot_rotating_frame, create_animation)
+    from visualize import (
+        create_animation,
+        plot_3d_trajectory,
+        plot_rotating_frame,
+        plot_telemetry,
+    )
 
     # ── 1. Build trajectory ────────────────────────────────────────────────────
     print("[1/5] Computing trajectory (verified baseline + fine optimizer)...")
@@ -91,12 +102,17 @@ def main():
         print("[+] Creating animated GIF...")
         create_animation(t, states, meta, n_frames=150)
 
+    # ── 7. Re-entry heating simulation ─────────────────────────────────────────
+    print("\n[+] Simulating atmospheric re-entry & heat-shield temperatures...")
+    from reentry import run_reentry_from_mission
+    run_reentry_from_mission(meta)
+
     elapsed = time.time() - t0
     out_dir = os.path.dirname(os.path.abspath(__file__))
-    print(f"\n{'═'*65}")
+    print(f"\n{'═' * 65}")
     print(f"  Simulation complete in {elapsed:.1f}s")
     print(f"  Output files in: {out_dir}/")
-    print(f"{'═'*65}\n")
+    print(f"{'═' * 65}\n")
 
 
 if __name__ == "__main__":

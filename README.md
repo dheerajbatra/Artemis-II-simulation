@@ -25,7 +25,7 @@ every dead-end hit, and exactly how the final working trajectory was found.
 
 **Artemis II** is NASA's first crewed lunar mission since Apollo 17 (1972).
 Unlike Artemis III (which will land on the Moon), Artemis II is a **flyby** —
-four astronauts orbit Earth, fire the TLI burn, coast to the Moon, swing close
+four astronauts orbit Earth, fire the TLI (Trans Lunar Injection) burn, coast to the Moon, swing close
 to the lunar surface, and return to Earth without any additional burns.
 The Moon's gravity alone bends their path back home.
 
@@ -597,4 +597,3 @@ circular approximation by up to ~21,000 km.
 
 *Simulation built with: Python 3, NumPy, SciPy (DOP853 integrator), Matplotlib*
 *Physics: Earth + Moon + Sun N-body, ECI frame, 100,000-point integration*
-*Total runtime: ~11 seconds on a modern laptop*
