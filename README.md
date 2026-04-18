@@ -5,6 +5,8 @@ built from scratch in Python. This document walks through every decision made,
 every dead-end hit, and exactly how the final working trajectory was found.
 
 ---
+<img width="1000" height="1000" alt="artemis_animation" src="https://github.com/user-attachments/assets/c1376747-67f6-41bf-b42d-533050d92c5c" />
+<img width="1320" height="660" alt="artemis_reentry_animation" src="https://github.com/user-attachments/assets/50f11fe5-7b6f-4368-b1ec-2b3c0a901f3b" />
 
 ## Table of Contents
 
